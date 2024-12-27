@@ -12,6 +12,7 @@ lab:
 3. Remove old repo and Clone Repo (If needed)
 
     ```
+    cd ~
     rm -r dp-203 -f
     git clone https://github.com/zyron92/dp-203-azure-data-engineer.git dp-203
     ```
