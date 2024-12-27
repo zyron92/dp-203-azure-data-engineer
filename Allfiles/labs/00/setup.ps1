@@ -213,13 +213,13 @@ New-AzRoleAssignment -Objectid $id -RoleDefinitionName "Storage Blob Data Owner"
 New-AzRoleAssignment -SignInName $userName -RoleDefinitionName "Storage Blob Data Owner" -Scope "/subscriptions/$subscriptionId/resourceGroups/$resourceGroupName/providers/Microsoft.Storage/storageAccounts/$dataLakeAccountName" -ErrorAction SilentlyContinue;
 
 
-# Create database
+# Create database DWH
 write-host "Creating the $sqlDatabaseName database..."
-sqlcmd -S "$synapseWorkspace.sql.azuresynapse.net" -U $sqlUser -P $sqlPassword -d $sqlDatabaseName -I -i setup.sql
+sqlcmd -S "$synapseWorkspace.sql.azuresynapse.net" -U $sqlUser -P $sqlPassword -d $sqlDatabaseName -I -i setup_lab1_dwh.sql
 
-# Load data
+# Load data to DWH
 write-host "Loading data..."
-Get-ChildItem "./data/*.txt" -File | Foreach-Object {
+Get-ChildItem "./data/lab1_dwh/*.txt" -File | Foreach-Object {
     write-host ""
     $file = $_.FullName
     Write-Host "$file"
@@ -231,8 +231,8 @@ Get-ChildItem "./data/*.txt" -File | Foreach-Object {
 write-host "Pausing the $sqlDatabaseName SQL Pool..."
 Suspend-AzSynapseSqlPool -WorkspaceName $synapseWorkspace -Name $sqlDatabaseName -AsJob
 
-# Upload files
-write-host "Loading data..."
+# Upload files Lab1
+write-host "Loading data LAB1..."
 $storageAccount = Get-AzStorageAccount -ResourceGroupName $resourceGroupName -Name $dataLakeAccountName
 $storageContext = $storageAccount.Context
 Get-ChildItem "./files/*.csv" -File | Foreach-Object {
@@ -240,6 +240,35 @@ Get-ChildItem "./files/*.csv" -File | Foreach-Object {
     $file = $_.Name
     Write-Host $file
     $blobPath = "sales_data/$file"
+    Set-AzStorageBlobContent -File $_.FullName -Container "files" -Blob $blobPath -Context $storageContext
+}
+
+# Upload files Lab2 | Parquet Files etc
+write-host "Loading data LAB2..."
+$storageAccount = Get-AzStorageAccount -ResourceGroupName $resourceGroupName -Name $dataLakeAccountName
+$storageContext = $storageAccount.Context
+Get-ChildItem "./data/lab2_mixed/*.csv" -File | Foreach-Object {
+    write-host ""
+    $file = $_.Name
+    Write-Host $file
+    $blobPath = "sales/csv/$file"
+    Set-AzStorageBlobContent -File $_.FullName -Container "files" -Blob $blobPath -Context $storageContext
+}
+
+Get-ChildItem "./data/lab2_mixed/*.parquet" -File | Foreach-Object {
+    write-host ""
+    Write-Host $_.Name
+    $folder = $_.Name.Replace(".snappy.parquet", "")
+    $file = $_.Name.Replace($folder, "orders")
+    $blobPath = "sales/parquet/year=$folder/$file"
+    Set-AzStorageBlobContent -File $_.FullName -Container "files" -Blob $blobPath -Context $storageContext
+}
+
+Get-ChildItem "./data/lab2_mixed/*.json" -File | Foreach-Object {
+    write-host ""
+    $file = $_.Name
+    Write-Host $file
+    $blobPath = "sales/json/$file"
     Set-AzStorageBlobContent -File $_.FullName -Container "files" -Blob $blobPath -Context $storageContext
 }
 
