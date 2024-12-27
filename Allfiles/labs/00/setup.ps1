@@ -243,6 +243,10 @@ Get-ChildItem "./files/*.csv" -File | Foreach-Object {
     Set-AzStorageBlobContent -File $_.FullName -Container "files" -Blob $blobPath -Context $storageContext
 }
 
+# TODO | Temporary for skipping previous lines; put the necessary variables
+# $resourceGroupName = "dp203-env1"
+# $dataLakeAccountName = "datalakeenv1"
+
 # Upload files Lab2 | Parquet Files etc
 write-host "Loading data LAB2..."
 $storageAccount = Get-AzStorageAccount -ResourceGroupName $resourceGroupName -Name $dataLakeAccountName
